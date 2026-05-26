@@ -7,13 +7,32 @@
 </div>
 
 <div align="center">
-  <strong>Production-ready Monday.com → Discord deployment relay with dynamic embeds, Render hosting support, duplicate protection, and live GraphQL board integration.</strong><br>
-  Built for professional development workflows and deployment pipelines.
+
+[![Version](https://img.shields.io/github/v/release/WelshPigeon/monday-discord-relay?style=for-the-badge&color=7A3FFF)](https://github.com/WelshPigeon/monday-discord-relay/releases)
+[![License](https://img.shields.io/badge/License-Pigeon%20Studios%20Proprietary-7A3FFF?style=for-the-badge)](https://github.com/WelshPigeon/monday-discord-relay/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/WelshPigeon/monday-discord-relay?style=for-the-badge&color=7A3FFF)](https://github.com/WelshPigeon/monday-discord-relay/commits/main)
+[![Repo Size](https://img.shields.io/github/repo-size/WelshPigeon/monday-discord-relay?style=for-the-badge&color=7A3FFF)](https://github.com/WelshPigeon/monday-discord-relay)
+![Node.js](https://img.shields.io/badge/Node.js-20+-black?style=for-the-badge&logo=node.js&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Deployed-black?style=for-the-badge&logo=render&logoColor=white)
+
+</div>
+
+<div align="center">
+  <strong>
+    Production-ready Monday.com to Discord deployment relay with dynamic embeds,
+    Render hosting support, duplicate protection, and live GraphQL board integration.
+  </strong>
+  <br>
+  Built for professional development workflows, deployment pipelines, and organised infrastructure management.
 </div>
 
 ---
 
-## 🔍 Repository Information
+> ⚠️ This repository is actively maintained and production deployed.
+
+---
+
+# 🔍 Repository Information
 
 | Field | Value |
 |------|------|
@@ -24,19 +43,22 @@
 | **Hosting Platform** | Render |
 | **API Integration** | Monday.com GraphQL API |
 | **Notification System** | Discord Webhooks |
+| **Architecture** | Stateless Webhook Relay |
+| **Deployment Model** | Cloud Hosted |
 | **Original Author / Studio** | Pigeon Studios |
 | **Status** | Production Stable |
 
 ---
 
-## 🧩 Overview
+# 🧩 Overview
 
-Monday Discord Relay is a production-ready automation service designed to bridge Monday.com deployment workflows directly into Discord.
+Monday Discord Relay is a production-ready webhook automation service designed to bridge Monday.com deployment workflows directly into Discord.
 
 When an item is moved into a configured deployment group within Monday.com, the relay automatically:
 
 - Retrieves live item metadata using the Monday GraphQL API
 - Resolves board information dynamically
+- Detects deployment group transitions
 - Generates professional deployment embeds
 - Sends deployment notifications into Discord
 - Prevents duplicate webhook executions
@@ -44,46 +66,83 @@ When an item is moved into a configured deployment group within Monday.com, the 
 - Provides health monitoring endpoints
 - Supports fully environment-driven configuration
 
-Designed specifically for organised development teams and production deployment pipelines.
+Designed specifically for organised development teams, deployment pipelines, and production infrastructure workflows.
 
 ---
 
-## 🚀 Core Features
+# ⚡ Quick Start
 
-### Monday.com Integration
-- Live Monday GraphQL API integration
-- Dynamic board lookups
-- Dynamic item resolution
-- Automatic account slug detection
-- Group transition tracking
+```bash
+git clone https://github.com/WelshPigeon/monday-discord-relay
+cd monday-discord-relay
 
-### Discord Integration
-- Rich deployment embeds
-- Role mention support
-- Dynamic webhook usernames
-- Professional deployment formatting
-- Configurable embed styling
+npm install
 
-### Production Features
-- Duplicate webhook protection
-- Health monitoring endpoint
-- Render deployment support
-- Environment-driven configuration
-- Debug field support
-- Safe field validation
-- Timestamp formatting
-- Request timeout handling
+cp examples/.env.example .env
 
-### Infrastructure
-- Zero database dependencies
-- Stateless architecture
-- Lightweight deployment footprint
-- Fully cloud deployable
-- Production-safe webhook handling
+node server.js
+```
 
 ---
 
-## 🔄 System Flow
+# 🚀 Core Features
+
+## Monday.com Integration
+
+| Feature | Included |
+|---|---|
+| Live GraphQL API Integration | ✅ |
+| Dynamic Item Resolution | ✅ |
+| Dynamic Board Lookups | ✅ |
+| Automatic Account Slug Detection | ✅ |
+| Group Transition Tracking | ✅ |
+| Dynamic Webhook Metadata | ✅ |
+
+---
+
+## Discord Integration
+
+| Feature | Included |
+|---|---|
+| Rich Deployment Embeds | ✅ |
+| Role Mention Support | ✅ |
+| Dynamic Webhook Usernames | ✅ |
+| Configurable Embed Styling | ✅ |
+| Deployment Status Tracking | ✅ |
+| Professional Notification Formatting | ✅ |
+
+---
+
+## Production Features
+
+| Feature | Included |
+|---|---|
+| Duplicate Webhook Protection | ✅ |
+| Stateless Architecture | ✅ |
+| Health Monitoring Endpoint | ✅ |
+| Render Deployment Support | ✅ |
+| Environment-Driven Configuration | ✅ |
+| Timestamp Formatting | ✅ |
+| Safe Field Validation | ✅ |
+| Request Timeout Handling | ✅ |
+| Debug Mode Support | ✅ |
+
+---
+
+## Infrastructure
+
+| Feature | Included |
+|---|---|
+| Zero Database Dependencies | ✅ |
+| Lightweight Runtime | ✅ |
+| Cloud Deployable | ✅ |
+| PM2 Compatible | ✅ |
+| Docker Compatible | ✅ |
+| Production-Safe Webhook Handling | ✅ |
+
+---
+
+# 🔄 System Flow
 
 ```text
 Monday.com
@@ -99,30 +158,58 @@ Discord Webhook Delivery
 
 ---
 
-## 📁 Repository Structure
+# ☁️ Supported Platforms
+
+- Render
+- Railway
+- VPS / Dedicated Hosting
+- PM2 Environments
+- Docker Deployments
+- Node.js Cloud Services
+
+---
+
+# 📁 Repository Structure
 
 | Path | Description |
 |------|-------------|
 | server.js | Main relay application |
 | examples/.env.example | Example environment configuration |
-| web/img/ | Repository banner and branding assets |
+| web/img/ | Repository branding and social preview assets |
+| .github/ | GitHub templates and repository workflows |
 | README.md | Repository documentation |
-| LICENSE | Repository licensing |
+| LICENSE | Proprietary licensing |
 | package.json | Node.js dependency manifest |
 
 ---
 
-## ⚙️ Dependencies
+# ⚙️ Dependencies
 
-Required:
+## Required
+
 - express
 - axios
 - dotenv
 
-External Services:
+---
+
+## External Services
+
 - Monday.com
 - Discord
 - Render
+
+---
+
+# 📦 Versioning
+
+This repository follows semantic versioning.
+
+| Version Type | Description |
+|---|---|
+| Major | Breaking changes |
+| Minor | New features and functionality |
+| Patch | Fixes, optimisations, and improvements |
 
 ---
 
@@ -133,6 +220,7 @@ External Services:
 Push the repository to GitHub.
 
 Example:
+
 ```bash
 git init
 git add .
@@ -145,7 +233,10 @@ git push
 ## 2) Create a Free Render Account
 
 Website:
+
+```text
 https://render.com
+```
 
 Sign in using GitHub.
 
@@ -176,7 +267,8 @@ Inside Render:
 
 Inside Render → Environment:
 
-Add the variables from:
+Add all variables from:
+
 ```text
 examples/.env.example
 ```
@@ -186,6 +278,7 @@ examples/.env.example
 ## 6) Deploy Service
 
 Click:
+
 ```text
 Deploy Web Service
 ```
@@ -227,6 +320,7 @@ When an item moves to group, send webhook
 ```
 
 Webhook URL:
+
 ```text
 https://your-service.onrender.com/monday
 ```
@@ -236,11 +330,12 @@ https://your-service.onrender.com/monday
 ## 3) Configure Deployment Group
 
 Example:
+
 ```env
 TARGET_GROUP_NAME=Ready for Deployment
 ```
 
-When an item enters this group, the relay will trigger.
+When an item enters this group, the relay will trigger automatically.
 
 ---
 
@@ -255,7 +350,7 @@ Inside Discord:
 - Webhooks
 - New Webhook
 
-Copy webhook URL into:
+Copy the webhook URL into:
 
 ```env
 DISCORD_WEBHOOK_URL=
@@ -272,6 +367,7 @@ DISCORD_ROLE_ID=
 ```
 
 Example:
+
 ```env
 DISCORD_ROLE_ID=123456789012345678
 ```
@@ -298,11 +394,13 @@ DISCORD_ROLE_ID=123456789012345678
 # 🧪 Health Endpoints
 
 ## Root
+
 ```text
 /
 ```
 
 Returns:
+
 ```text
 Relay online confirmation
 ```
@@ -310,11 +408,13 @@ Relay online confirmation
 ---
 
 ## Health Check
+
 ```text
 /health
 ```
 
 Returns:
+
 ```json
 {
   "status": "ok"
@@ -324,6 +424,7 @@ Returns:
 ---
 
 ## Monday Endpoint
+
 ```text
 /monday
 ```
@@ -333,6 +434,7 @@ Webhook endpoint used by Monday.com.
 ---
 
 ## Discord Test Route
+
 ```text
 /test-discord
 ```
@@ -366,40 +468,70 @@ Moved At: Today at 10:42
 
 - Never commit real API tokens
 - Never commit Discord webhooks
-- Keep `.env` private
-- Use Render environment variables
+- Never publicly expose `.env` files
+- Use Render environment variables only
 - Rotate compromised tokens immediately
+- Keep deployment channels restricted
+- Disable debug routes in production
 
 ---
 
 # 🚦 Production Recommendations
 
-Recommended:
+Recommended configuration:
+
 - Private GitHub repository
+- Protected branches enabled
 - Render environment variables only
 - Disabled debug fields
 - Disabled public test route
 - Dedicated deployment Discord channel
+- Separate staging and development branches
+- Versioned releases and deployment tags
 
 ---
 
 # 🛠 Troubleshooting
 
 ## Webhook Not Triggering
+
 - Verify Monday automation is active
 - Verify Render service is online
 - Verify webhook URL is correct
+- Verify deployment group matches `TARGET_GROUP_NAME`
+
+---
 
 ## Unknown Item / Board
-- Verify MONDAY_API_TOKEN
+
+- Verify `MONDAY_API_TOKEN`
 - Verify token permissions
+- Verify board access permissions
+
+---
 
 ## Discord Webhook Fails
+
 - Verify Discord webhook URL
 - Verify webhook still exists
+- Verify Discord channel permissions
+
+---
 
 ## Duplicate Messages
-Duplicate protection is automatically enabled.
+
+Duplicate protection is automatically enabled and handled internally.
+
+---
+
+# 🆘 Support
+
+For deployment issues, bug reports, or infrastructure assistance:
+
+- Open a GitHub Issue
+- Submit a Feature Request
+- Review the troubleshooting section
+- Contact Pigeon Studios
 
 ---
 
@@ -407,15 +539,20 @@ Duplicate protection is automatically enabled.
 
 Copyright © Pigeon Studios
 
-This repository and all associated source code remain the property of Pigeon Studios.
+This repository and all associated source code remain the exclusive property of Pigeon Studios.
 
-Redistribution, resale, relicensing, or public redistribution without explicit written permission is prohibited.
+Redistribution, resale, sublicensing, relicensing, public mirroring, or unauthorised commercial usage without explicit written permission from Pigeon Studios is strictly prohibited.
 
 Licensed deployments are restricted to authorised environments only.
+
+Refer to the `LICENSE` file for full proprietary licensing terms.
 
 ---
 
 # 🤝 Credits
 
-Developed by Pigeon Studios  
-Built for professional deployment workflows and production infrastructure.
+Developed by Pigeon Studios
+
+Built for professional deployment workflows, production infrastructure, and organised development operations.
+
+---
