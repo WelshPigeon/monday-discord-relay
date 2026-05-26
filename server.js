@@ -92,14 +92,9 @@ app.post('/monday', async (req, res) => {
 
     console.log(`[INFO] Item "${itemName}" moved to "${groupName}".`);
 
-    // Ignore non-target groups
-    if (groupName !== TARGET_GROUP_NAME) {
-      console.log(
-        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME}".`
-      );
-
-      return res.sendStatus(200);
-    }
+    // TEMP DEBUG MODE
+    // Disabled strict group checking to verify Monday webhook delivery
+    console.log('[DEBUG] Target group check disabled. Sending Discord webhook anyway.');
 
     console.log('[DISCORD] Sending deployment embed...');
 
@@ -107,8 +102,8 @@ app.post('/monday', async (req, res) => {
       username: DISCORD_USERNAME,
       embeds: [
         {
-          title: '✔ Deployment Ready',
-          description: `**${itemName}** was moved to **${groupName}**.`,
+          title: '✔ Monday Automation Triggered',
+          description: `**${itemName}** triggered the Monday webhook.`,
           color: 7085311,
           fields: [
             {
@@ -127,6 +122,9 @@ app.post('/monday', async (req, res) => {
               inline: false
             }
           ],
+          footer: {
+            text: 'Pigeon Studios • Monday Relay Debug'
+          },
           timestamp: new Date().toISOString()
         }
       ]
