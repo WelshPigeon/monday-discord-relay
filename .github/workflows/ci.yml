@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - development
+
+  pull_request:
+    branches:
+      - main
+      - staging
+      - development
+
+jobs:
+  validate:
+    name: Validate Node.js Service
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version:
+          - 20.x
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Package Metadata
+        run: npm pkg get name version description main scripts.start
+
+      - name: Syntax Check
+        run: node --check server.js
+
+      - name: Startup Validation
+        run: |
+          timeout 8s npm start || EXIT_CODE=$?
+          if [ "${EXIT_CODE:-0}" -eq 124 ]; then
+            echo "Startup validation passed. Service remained online."
+            exit 0
+          fi
+          exit "${EXIT_CODE:-0}"
+        env:
+          SERVICE_NAME: Monday Discord Relay CI
+          DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/test/test
+          MONDAY_API_TOKEN: ci-placeholder-token
+          TARGET_GROUP_NAME: Ready for Deployment
+          TEST_ROUTE_ENABLED: false
+          SHOW_DEBUG_FIELDS: false
+          USE_BOARD_NAME_AS_WEBHOOK_USERNAME: true
+
+      - name: Dependency Audit
+        run: npm audit --audit-level=high
