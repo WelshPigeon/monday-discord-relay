@@ -26,8 +26,33 @@ app.get('/monday', (req, res) => {
   res.status(200).send('Monday webhook endpoint is ready.');
 });
 
+// Discord webhook test route
+app.get('/test-discord', async (req, res) => {
+  try {
+    console.log('[TEST] Sending Discord webhook test message...');
+
+    await axios.post(DISCORD_WEBHOOK_URL, {
+      username: DISCORD_USERNAME,
+      content: '✅ Monday → Discord relay test message.'
+    });
+
+    console.log('[TEST] Discord webhook test successful.');
+
+    return res.status(200).send('Discord test sent successfully.');
+  } catch (error) {
+    console.error(
+      '[TEST DISCORD ERROR]',
+      error.response?.data || error.message || error
+    );
+
+    return res.status(500).send('Discord test failed. Check Render logs.');
+  }
+});
+
 app.post('/monday', async (req, res) => {
   const body = req.body;
+
+  console.log('[RAW BODY]', JSON.stringify(body, null, 2));
 
   // Monday.com webhook verification
   if (body.challenge) {
@@ -48,6 +73,7 @@ app.post('/monday', async (req, res) => {
       event.itemName ||
       event.name ||
       event.item?.name ||
+      event.pulse?.name ||
       'Unknown Item';
 
     const boardName =
@@ -61,6 +87,7 @@ app.post('/monday', async (req, res) => {
       event.group?.title ||
       event.value?.label?.text ||
       event.value?.name ||
+      event.dest_group?.title ||
       'Unknown Group';
 
     console.log(`[INFO] Item "${itemName}" moved to "${groupName}".`);
@@ -73,6 +100,8 @@ app.post('/monday', async (req, res) => {
 
       return res.sendStatus(200);
     }
+
+    console.log('[DISCORD] Sending deployment embed...');
 
     await axios.post(DISCORD_WEBHOOK_URL, {
       username: DISCORD_USERNAME,
