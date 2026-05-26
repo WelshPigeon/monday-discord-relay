@@ -22,10 +22,17 @@ app.get('/', (req, res) => {
   res.status(200).send('Monday → Discord relay is running.');
 });
 
+app.get('/monday', (req, res) => {
+  res.status(200).send('Monday webhook endpoint is ready.');
+});
+
 app.post('/monday', async (req, res) => {
   const body = req.body;
 
+  // Monday.com webhook verification
   if (body.challenge) {
+    console.log('[MONDAY] Challenge verification received.');
+
     return res.status(200).json({
       challenge: body.challenge
     });
@@ -56,8 +63,14 @@ app.post('/monday', async (req, res) => {
       event.value?.name ||
       'Unknown Group';
 
+    console.log(`[INFO] Item "${itemName}" moved to "${groupName}".`);
+
+    // Ignore non-target groups
     if (groupName !== TARGET_GROUP_NAME) {
-      console.log(`[SKIPPED] Item moved to "${groupName}", not target group "${TARGET_GROUP_NAME}".`);
+      console.log(
+        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME}".`
+      );
+
       return res.sendStatus(200);
     }
 
@@ -91,9 +104,14 @@ app.post('/monday', async (req, res) => {
     });
 
     console.log(`[SENT] Discord webhook sent for "${itemName}".`);
+
     return res.sendStatus(200);
   } catch (error) {
-    console.error('[ERROR]', error.response?.data || error.message);
+    console.error(
+      '[ERROR]',
+      error.response?.data || error.message || error
+    );
+
     return res.sendStatus(500);
   }
 });
