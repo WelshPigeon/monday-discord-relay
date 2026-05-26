@@ -20,7 +20,12 @@ const MONDAY_API_TOKEN = process.env.MONDAY_API_TOKEN;
 const TARGET_GROUP_NAME = process.env.TARGET_GROUP_NAME || 'Ready for Deployment';
 const TEST_ROUTE_ENABLED = process.env.TEST_ROUTE_ENABLED === 'true';
 
-const EMBED_COLOR = Number(process.env.EMBED_COLOR || 4994733);
+const EMBED_TITLE = process.env.EMBED_TITLE || '✔ Ready for Deployment';
+const EMBED_FOOTER = process.env.EMBED_FOOTER || 'CaliWorld Development • Monday Relay';
+const EMBED_STATUS = process.env.EMBED_STATUS || 'Ready for Deployment';
+const EMBED_COLOR = parseInt(process.env.EMBED_COLOR || '4994733', 10);
+
+const SHOW_DEBUG_FIELDS = process.env.SHOW_DEBUG_FIELDS === 'true';
 
 const recentTriggers = new Map();
 
@@ -59,7 +64,31 @@ function normalize(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function toDiscordTimestamp(dateValue) {
+  const timestamp = Date.parse(dateValue);
+
+  if (!Number.isFinite(timestamp)) {
+    return null;
+  }
+
+  return `<t:${Math.floor(timestamp / 1000)}:F>`;
+}
+
+function safeFieldValue(value, fallback = 'N/A') {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return fallback;
+  }
+
+  return text.length > 1024 ? `${text.slice(0, 1021)}...` : text;
+}
+
 async function mondayGraphQL(query, variables = {}) {
+  if (!MONDAY_API_TOKEN) {
+    throw new Error('MONDAY_API_TOKEN is not configured.');
+  }
+
   const response = await axios.post(
     'https://api.monday.com/v2',
     {
@@ -75,21 +104,28 @@ async function mondayGraphQL(query, variables = {}) {
     }
   );
 
+  if (response.data?.errors?.length) {
+    throw new Error(JSON.stringify(response.data.errors));
+  }
+
   return response.data;
 }
 
-async function getMondayItemDetails(pulseId) {
+async function getMondayItemDetails(pulseId, boardId, sourceGroupId, destGroupId) {
   if (!MONDAY_API_TOKEN || !pulseId) {
     return {
       itemName: 'Unknown Item',
       boardName: 'Unknown Board',
-      itemUrl: null
+      itemUrl: null,
+      sourceGroupName: sourceGroupId || 'Unknown Source Group',
+      destinationGroupName: 'Unknown Destination Group',
+      accountSlug: null
     };
   }
 
   try {
     const query = `
-      query ($itemIds: [ID!]) {
+      query ($itemIds: [ID!], $boardIds: [ID!]) {
         account {
           slug
         }
@@ -101,32 +137,44 @@ async function getMondayItemDetails(pulseId) {
             name
           }
         }
+        boards(ids: $boardIds) {
+          id
+          name
+          groups {
+            id
+            title
+          }
+        }
       }
     `;
 
-    const response = await mondayGraphQL(query, {
-      itemIds: [String(pulseId)]
-    });
+    const variables = {
+      itemIds: [String(pulseId)],
+      boardIds: boardId ? [String(boardId)] : []
+    };
+
+    const response = await mondayGraphQL(query, variables);
 
     const item = response.data?.items?.[0];
-    const accountSlug = response.data?.account?.slug;
+    const board = response.data?.boards?.[0];
+    const accountSlug = response.data?.account?.slug || null;
+
+    const sourceGroup = board?.groups?.find((group) => group.id === sourceGroupId);
+    const destinationGroup = board?.groups?.find((group) => group.id === destGroupId);
 
     if (!item) {
       console.warn(`[MONDAY API] No item found for pulseId ${pulseId}.`);
-
-      return {
-        itemName: 'Unknown Item',
-        boardName: 'Unknown Board',
-        itemUrl: null
-      };
     }
 
     return {
-      itemName: item.name || 'Unknown Item',
-      boardName: item.board?.name || 'Unknown Board',
-      itemUrl: accountSlug && item.board?.id && item.id
-        ? `https://${accountSlug}.monday.com/boards/${item.board.id}/pulses/${item.id}`
-        : null
+      itemName: item?.name || 'Unknown Item',
+      boardName: item?.board?.name || board?.name || 'Unknown Board',
+      itemUrl: accountSlug && (item?.board?.id || boardId) && (item?.id || pulseId)
+        ? `https://${accountSlug}.monday.com/boards/${item?.board?.id || boardId}/pulses/${item?.id || pulseId}`
+        : null,
+      sourceGroupName: sourceGroup?.title || sourceGroupId || 'Unknown Source Group',
+      destinationGroupName: destinationGroup?.title || destGroupId || 'Unknown Destination Group',
+      accountSlug
     };
   } catch (error) {
     console.error(
@@ -137,7 +185,10 @@ async function getMondayItemDetails(pulseId) {
     return {
       itemName: 'Unknown Item',
       boardName: 'Unknown Board',
-      itemUrl: null
+      itemUrl: null,
+      sourceGroupName: sourceGroupId || 'Unknown Source Group',
+      destinationGroupName: destGroupId || 'Unknown Destination Group',
+      accountSlug: null
     };
   }
 }
@@ -150,7 +201,9 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
     service: 'monday-discord-relay',
-    targetGroup: TARGET_GROUP_NAME
+    targetGroup: TARGET_GROUP_NAME,
+    testRouteEnabled: TEST_ROUTE_ENABLED,
+    debugFieldsEnabled: SHOW_DEBUG_FIELDS
   });
 });
 
@@ -208,13 +261,41 @@ app.post('/monday', async (req, res) => {
       event.pulse_id ||
       null;
 
-    const groupName =
+    const boardId =
+      event.boardId ||
+      event.board_id ||
+      null;
+
+    const sourceGroupId =
+      event.sourceGroupId ||
+      event.source_group_id ||
+      null;
+
+    const destinationGroupId =
+      event.destGroupId ||
+      event.destinationGroupId ||
+      event.dest_group_id ||
+      null;
+
+    const webhookDestinationGroupName =
       event.destGroup?.title ||
       event.groupName ||
       event.group?.title ||
       event.value?.label?.text ||
       event.value?.name ||
       event.dest_group?.title ||
+      null;
+
+    const mondayDetails = await getMondayItemDetails(
+      pulseId,
+      boardId,
+      sourceGroupId,
+      destinationGroupId
+    );
+
+    const groupName =
+      webhookDestinationGroupName ||
+      mondayDetails.destinationGroupName ||
       'Unknown Group';
 
     if (normalize(groupName) !== normalize(TARGET_GROUP_NAME)) {
@@ -224,8 +305,6 @@ app.post('/monday', async (req, res) => {
 
       return res.sendStatus(200);
     }
-
-    const mondayDetails = await getMondayItemDetails(pulseId);
 
     const itemName =
       event.pulseName ||
@@ -242,33 +321,51 @@ app.post('/monday', async (req, res) => {
       mondayDetails.boardName ||
       'Unknown Board';
 
+    const sourceGroupName = mondayDetails.sourceGroupName;
+    const destinationGroupName = groupName;
     const itemUrl = mondayDetails.itemUrl;
+    const movedAt = toDiscordTimestamp(event.triggerTime);
 
-    console.log(`[INFO] Item "${itemName}" moved to "${groupName}".`);
+    console.log(`[INFO] Item "${itemName}" moved from "${sourceGroupName}" to "${destinationGroupName}".`);
 
     const embed = {
-      title: '✔ Ready for Deployment',
-      description: `**${itemName}** has been moved into **${groupName}**.`,
+      title: EMBED_TITLE,
+      description: `**${itemName}** is now ready for deployment.`,
       color: EMBED_COLOR,
       fields: [
         {
-          name: 'Item',
-          value: itemName,
+          name: 'Status',
+          value: safeFieldValue(EMBED_STATUS),
           inline: true
         },
         {
           name: 'Board',
-          value: boardName,
+          value: safeFieldValue(boardName),
           inline: true
         },
         {
-          name: 'Group',
-          value: groupName,
-          inline: false
+          name: 'Moved To',
+          value: safeFieldValue(destinationGroupName),
+          inline: true
+        },
+        {
+          name: 'Moved From',
+          value: safeFieldValue(sourceGroupName),
+          inline: true
+        },
+        {
+          name: 'Triggered By',
+          value: event.userId ? `Monday User ${event.userId}` : 'Unknown User',
+          inline: true
+        },
+        {
+          name: 'Moved At',
+          value: movedAt || 'Unknown Time',
+          inline: true
         }
       ],
       footer: {
-        text: 'CaliWorld Development • Monday Relay'
+        text: EMBED_FOOTER
       },
       timestamp: new Date().toISOString()
     };
@@ -280,6 +377,26 @@ app.post('/monday', async (req, res) => {
         value: `[Open Item](${itemUrl})`,
         inline: false
       });
+    }
+
+    if (SHOW_DEBUG_FIELDS) {
+      embed.fields.push(
+        {
+          name: 'Item ID',
+          value: safeFieldValue(pulseId),
+          inline: true
+        },
+        {
+          name: 'Board ID',
+          value: safeFieldValue(boardId),
+          inline: true
+        },
+        {
+          name: 'Trigger ID',
+          value: safeFieldValue(event.triggerUuid),
+          inline: false
+        }
+      );
     }
 
     const payload = {
