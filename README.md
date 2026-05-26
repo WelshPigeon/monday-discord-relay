@@ -173,13 +173,20 @@ Discord Webhook Delivery
 
 | Path | Description |
 |------|-------------|
-| server.js | Main relay application |
+| .github/ISSUE_TEMPLATE/ | GitHub issue templates |
+| .github/workflows/ | GitHub Actions CI workflows |
+| .github/CODEOWNERS | Repository ownership configuration |
+| .github/pull_request_template.md | Pull request template |
 | examples/.env.example | Example environment configuration |
-| web/img/ | Repository branding and social preview assets |
-| .github/ | GitHub templates and repository workflows |
-| README.md | Repository documentation |
-| LICENSE | Proprietary licensing |
+| web/img/ | Repository branding, banners, and social preview assets |
+| server.js | Main relay application |
+| README.md | Primary repository documentation |
+| CONTRIBUTING.md | Contribution guidelines and workflow standards |
+| CHANGELOG.md | Repository version and release tracking |
+| LICENSE | Plain-text GitHub-recognised proprietary license |
+| LICENSE.md | Fully formatted enterprise license agreement |
 | package.json | Node.js dependency manifest |
+| package-lock.json | Dependency lockfile |
 
 ---
 
