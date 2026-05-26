@@ -1,0 +1,274 @@
+PIGEON STUDIOS PROPRIETARY SOFTWARE LICENSE AGREEMENT
+=====================================================
+
+Copyright (c) Pigeon Studios.
+All Rights Reserved.
+
+Last Updated: May 2026
+
+IMPORTANT:
+THIS SOFTWARE IS PROPRIETARY AND CONFIDENTIAL.
+BY ACCESSING, VIEWING, USING, COPYING, MODIFYING,
+OR DISTRIBUTING THIS SOFTWARE, YOU AGREE TO BE
+BOUND BY THE TERMS OF THIS LICENSE AGREEMENT.
+
+-----------------------------------------------------
+1. DEFINITIONS
+-----------------------------------------------------
+
+"Software" refers to all source code, object code,
+scripts, configuration files, assets, documentation,
+designs, workflows, APIs, automation logic, deployment
+pipelines, integrations, repository contents, and all
+associated materials contained within this repository.
+
+"Licensor" refers to Pigeon Studios.
+
+"Licensee" refers to any individual, organisation,
+entity, contractor, developer, or third party granted
+access to the Software.
+
+"Authorised Environment" refers solely to systems,
+servers, repositories, infrastructure, and deployment
+environments explicitly approved in writing by the
+Licensor.
+
+-----------------------------------------------------
+2. OWNERSHIP
+-----------------------------------------------------
+
+The Software is proprietary intellectual property
+owned exclusively by Pigeon Studios.
+
+All rights, title, ownership, copyright, trade secrets,
+patents, trademarks, proprietary methodologies, source
+code rights, automation workflows, deployment logic,
+and all associated intellectual property rights remain
+the sole and exclusive property of Pigeon Studios.
+
+No ownership rights are transferred under this License.
+
+-----------------------------------------------------
+3. LICENSE GRANT
+-----------------------------------------------------
+
+Subject to full compliance with this Agreement, the
+Licensor grants the Licensee a limited, revocable,
+non-exclusive, non-transferable, non-sublicensable
+license to use the Software solely within explicitly
+Authorised Environments.
+
+This License does NOT grant any right to:
+- redistribute the Software
+- publish the Software
+- sublicense the Software
+- resell the Software
+- commercially exploit the Software
+- share the Software publicly
+- rehost the Software
+- distribute modified versions
+- expose source code publicly
+- provide the Software to third parties
+- use the Software outside approved infrastructure
+
+Any rights not explicitly granted are reserved entirely
+by Pigeon Studios.
+
+-----------------------------------------------------
+4. RESTRICTIONS
+-----------------------------------------------------
+
+WITHOUT PRIOR WRITTEN PERMISSION FROM PIGEON STUDIOS,
+THE LICENSEE SHALL NOT:
+
+4.1 Redistribution
+Redistribute, publish, upload, mirror, transmit,
+repackage, or otherwise distribute the Software or any
+portion thereof.
+
+4.2 Commercial Usage
+Sell, lease, sublicense, monetise, commercialise, or
+otherwise profit from the Software.
+
+4.3 Reverse Engineering
+Reverse engineer, decompile, disassemble, analyse,
+derive source structures from, or otherwise attempt to
+extract proprietary implementation details from the
+Software.
+
+4.4 Public Disclosure
+Disclose source code, deployment logic, internal
+architecture, environment configurations, automation
+workflows, or proprietary operational methodologies.
+
+4.5 Modification and Derivative Works
+Create derivative works intended for redistribution,
+resale, or public deployment.
+
+4.6 Removal of Notices
+Remove, alter, obscure, or bypass copyright notices,
+license notices, proprietary notices, or attribution
+markings.
+
+4.7 Unauthorised Access
+Provide repository access, deployment access, source
+code access, or infrastructure access to unauthorised
+individuals or organisations.
+
+-----------------------------------------------------
+5. CONFIDENTIALITY
+-----------------------------------------------------
+
+The Software constitutes confidential and proprietary
+information belonging to Pigeon Studios.
+
+The Licensee agrees to maintain strict confidentiality
+regarding:
+- source code
+- deployment architecture
+- automation workflows
+- infrastructure design
+- integration logic
+- operational procedures
+- security implementations
+- internal tooling methodologies
+
+The Licensee shall take all reasonable measures to
+prevent unauthorised disclosure, access, copying, or
+distribution of the Software.
+
+-----------------------------------------------------
+6. AUTHORISED USE
+-----------------------------------------------------
+
+Use of the Software is strictly limited to:
+- approved internal development
+- approved operational infrastructure
+- authorised deployment environments
+- explicitly approved production systems
+
+Use outside approved environments constitutes a
+material breach of this Agreement.
+
+-----------------------------------------------------
+7. SECURITY OBLIGATIONS
+-----------------------------------------------------
+
+The Licensee agrees to implement reasonable technical
+and organisational safeguards to protect the Software,
+including:
+- restricted repository access
+- credential protection
+- environment variable security
+- webhook confidentiality
+- API token protection
+- secure hosting environments
+
+Any known or suspected compromise involving the
+Software must be reported to Pigeon Studios
+immediately.
+
+-----------------------------------------------------
+8. TERMINATION
+-----------------------------------------------------
+
+This License shall terminate automatically and
+immediately upon any breach of this Agreement.
+
+Upon termination, the Licensee must:
+- cease all use of the Software
+- destroy all copies of the Software
+- remove all deployments
+- revoke all distributed access
+- permanently delete all associated materials
+
+Termination does not limit any legal or equitable
+remedies available to Pigeon Studios.
+
+-----------------------------------------------------
+9. NO WARRANTY
+-----------------------------------------------------
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO:
+- MERCHANTABILITY
+- FITNESS FOR A PARTICULAR PURPOSE
+- NON-INFRINGEMENT
+- SECURITY
+- RELIABILITY
+- PERFORMANCE
+- AVAILABILITY
+
+PIGEON STUDIOS DOES NOT GUARANTEE THAT THE SOFTWARE
+WILL BE ERROR-FREE, UNINTERRUPTED, OR SECURE.
+
+-----------------------------------------------------
+10. LIMITATION OF LIABILITY
+-----------------------------------------------------
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, PIGEON
+STUDIOS SHALL NOT BE LIABLE FOR:
+- INDIRECT DAMAGES
+- INCIDENTAL DAMAGES
+- CONSEQUENTIAL DAMAGES
+- DATA LOSS
+- BUSINESS INTERRUPTION
+- LOSS OF PROFITS
+- SECURITY INCIDENTS
+- OPERATIONAL FAILURES
+
+THIS APPLIES REGARDLESS OF LEGAL THEORY, INCLUDING:
+- CONTRACT
+- TORT
+- NEGLIGENCE
+- STRICT LIABILITY
+
+-----------------------------------------------------
+11. INJUNCTIVE RELIEF
+-----------------------------------------------------
+
+The Licensee acknowledges that unauthorised disclosure
+or misuse of the Software may cause irreparable harm
+to Pigeon Studios for which monetary damages alone
+would be insufficient.
+
+Pigeon Studios shall therefore be entitled to seek:
+- injunctive relief
+- equitable relief
+- immediate enforcement remedies
+- repository takedowns
+- hosting provider takedowns
+- legal enforcement actions
+
+without the requirement to post bond.
+
+-----------------------------------------------------
+12. GOVERNING LAW
+-----------------------------------------------------
+
+This Agreement shall be governed by and interpreted in
+accordance with the laws of the United Kingdom.
+
+Any disputes arising under this Agreement shall be
+subject to the exclusive jurisdiction of the courts of
+the United Kingdom.
+
+-----------------------------------------------------
+13. ENTIRE AGREEMENT
+-----------------------------------------------------
+
+This Agreement constitutes the complete and exclusive
+agreement regarding the Software and supersedes all
+prior agreements, communications, or understandings,
+whether written or oral.
+
+-----------------------------------------------------
+14. CONTACT
+-----------------------------------------------------
+
+Licensing Enquiries:
+pigeon@pigeonstudios.co.uk
+
+Pigeon Studios
+All Rights Reserved.
