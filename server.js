@@ -11,21 +11,23 @@ app.use(express.json({
 
 const PORT = process.env.PORT || 3000;
 
+const SERVICE_NAME = process.env.SERVICE_NAME || 'Monday Discord Relay';
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const DISCORD_USERNAME = process.env.DISCORD_USERNAME || 'CaliWorld Development';
+const DISCORD_USERNAME = process.env.DISCORD_USERNAME || '';
 const DISCORD_ROLE_ID = process.env.DISCORD_ROLE_ID || '';
 
 const MONDAY_API_TOKEN = process.env.MONDAY_API_TOKEN;
 
-const TARGET_GROUP_NAME = process.env.TARGET_GROUP_NAME || 'Ready for Deployment';
+const TARGET_GROUP_NAME = process.env.TARGET_GROUP_NAME;
 const TEST_ROUTE_ENABLED = process.env.TEST_ROUTE_ENABLED === 'true';
 
-const EMBED_TITLE = process.env.EMBED_TITLE || '✔ Ready for Deployment';
-const EMBED_FOOTER = process.env.EMBED_FOOTER || 'CaliWorld Development • Monday Relay';
-const EMBED_STATUS = process.env.EMBED_STATUS || 'Ready for Deployment';
+const EMBED_TITLE = process.env.EMBED_TITLE || 'Deployment Readiness Confirmed';
+const EMBED_FOOTER = process.env.EMBED_FOOTER || SERVICE_NAME;
+const EMBED_STATUS = process.env.EMBED_STATUS || TARGET_GROUP_NAME || 'Ready';
 const EMBED_COLOR = parseInt(process.env.EMBED_COLOR || '4994733', 10);
 
 const SHOW_DEBUG_FIELDS = process.env.SHOW_DEBUG_FIELDS === 'true';
+const USE_BOARD_NAME_AS_WEBHOOK_USERNAME = process.env.USE_BOARD_NAME_AS_WEBHOOK_USERNAME !== 'false';
 
 const recentTriggers = new Map();
 
@@ -35,6 +37,10 @@ if (!DISCORD_WEBHOOK_URL) {
 
 if (!MONDAY_API_TOKEN) {
   console.warn('[WARN] MONDAY_API_TOKEN is not set. Monday item details may show as Unknown.');
+}
+
+if (!TARGET_GROUP_NAME) {
+  console.warn('[WARN] TARGET_GROUP_NAME is not set. No Monday group will be treated as the target group.');
 }
 
 function cleanOldTriggers() {
@@ -82,6 +88,16 @@ function safeFieldValue(value, fallback = 'N/A') {
   }
 
   return text.length > 1024 ? `${text.slice(0, 1021)}...` : text;
+}
+
+function safeWebhookUsername(value) {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return SERVICE_NAME;
+  }
+
+  return text.slice(0, 80);
 }
 
 async function mondayGraphQL(query, variables = {}) {
@@ -194,16 +210,17 @@ async function getMondayItemDetails(pulseId, boardId, sourceGroupId, destGroupId
 }
 
 app.get('/', (req, res) => {
-  res.status(200).send('CaliWorld Monday → Discord relay is running.');
+  res.status(200).send(`${SERVICE_NAME} is running.`);
 });
 
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    service: 'monday-discord-relay',
-    targetGroup: TARGET_GROUP_NAME,
+    service: SERVICE_NAME,
+    targetGroup: TARGET_GROUP_NAME || null,
     testRouteEnabled: TEST_ROUTE_ENABLED,
-    debugFieldsEnabled: SHOW_DEBUG_FIELDS
+    debugFieldsEnabled: SHOW_DEBUG_FIELDS,
+    boardNameAsWebhookUsername: USE_BOARD_NAME_AS_WEBHOOK_USERNAME
   });
 });
 
@@ -218,8 +235,8 @@ app.get('/test-discord', async (req, res) => {
 
   try {
     await axios.post(DISCORD_WEBHOOK_URL, {
-      username: DISCORD_USERNAME,
-      content: '✅ CaliWorld Monday → Discord relay test message.'
+      username: safeWebhookUsername(DISCORD_USERNAME || SERVICE_NAME),
+      content: `${SERVICE_NAME} test message.`
     });
 
     return res.status(200).send('Discord test sent successfully.');
@@ -229,7 +246,7 @@ app.get('/test-discord', async (req, res) => {
       error.response?.data || error.message || error
     );
 
-    return res.status(500).send('Discord test failed. Check Render logs.');
+    return res.status(500).send('Discord test failed. Check service logs.');
   }
 });
 
@@ -298,9 +315,9 @@ app.post('/monday', async (req, res) => {
       mondayDetails.destinationGroupName ||
       'Unknown Group';
 
-    if (normalize(groupName) !== normalize(TARGET_GROUP_NAME)) {
+    if (!TARGET_GROUP_NAME || normalize(groupName) !== normalize(TARGET_GROUP_NAME)) {
       console.log(
-        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME}".`
+        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME || 'Not Configured'}".`
       );
 
       return res.sendStatus(200);
@@ -328,14 +345,16 @@ app.post('/monday', async (req, res) => {
 
     console.log(`[INFO] Item "${itemName}" moved from "${sourceGroupName}" to "${destinationGroupName}".`);
 
+    const descriptionStatus = EMBED_STATUS || destinationGroupName;
+
     const embed = {
       title: EMBED_TITLE,
-      description: `**${itemName}** is now ready for deployment.`,
+      description: `**${itemName}** has moved into **${destinationGroupName}**.`,
       color: EMBED_COLOR,
       fields: [
         {
           name: 'Status',
-          value: safeFieldValue(EMBED_STATUS),
+          value: safeFieldValue(descriptionStatus),
           inline: true
         },
         {
@@ -399,8 +418,12 @@ app.post('/monday', async (req, res) => {
       );
     }
 
+    const webhookUsername = USE_BOARD_NAME_AS_WEBHOOK_USERNAME
+      ? safeWebhookUsername(boardName)
+      : safeWebhookUsername(DISCORD_USERNAME || SERVICE_NAME);
+
     const payload = {
-      username: DISCORD_USERNAME,
+      username: webhookUsername,
       embeds: [embed]
     };
 
@@ -415,7 +438,7 @@ app.post('/monday', async (req, res) => {
       timeout: 10000
     });
 
-    console.log(`[SENT] Discord webhook sent for "${itemName}".`);
+    console.log(`[SENT] Discord webhook sent for "${itemName}" using username "${webhookUsername}".`);
 
     return res.sendStatus(200);
   } catch (error) {
@@ -429,5 +452,5 @@ app.post('/monday', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`CaliWorld Monday → Discord relay running on port ${PORT}`);
+  console.log(`${SERVICE_NAME} running on port ${PORT}`);
 });
