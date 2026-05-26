@@ -10,17 +10,72 @@ app.use(express.json({
 }));
 
 const PORT = process.env.PORT || 3000;
+
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const DISCORD_USERNAME = process.env.DISCORD_USERNAME || 'CaliWorld Development';
+const DISCORD_ROLE_ID = process.env.DISCORD_ROLE_ID || '';
+
 const MONDAY_API_TOKEN = process.env.MONDAY_API_TOKEN;
+
 const TARGET_GROUP_NAME = process.env.TARGET_GROUP_NAME || 'Ready for Deployment';
-const DISCORD_USERNAME = process.env.DISCORD_USERNAME || 'Pigeon Studios';
+const TEST_ROUTE_ENABLED = process.env.TEST_ROUTE_ENABLED === 'true';
+
+const EMBED_COLOR = Number(process.env.EMBED_COLOR || 4994733);
+
+const recentTriggers = new Map();
 
 if (!DISCORD_WEBHOOK_URL) {
   console.warn('[WARN] DISCORD_WEBHOOK_URL is not set.');
 }
 
 if (!MONDAY_API_TOKEN) {
-  console.warn('[WARN] MONDAY_API_TOKEN is not set. Item and board names may show as Unknown.');
+  console.warn('[WARN] MONDAY_API_TOKEN is not set. Monday item details may show as Unknown.');
+}
+
+function cleanOldTriggers() {
+  const now = Date.now();
+
+  for (const [key, timestamp] of recentTriggers.entries()) {
+    if (now - timestamp > 10 * 60 * 1000) {
+      recentTriggers.delete(key);
+    }
+  }
+}
+
+function isDuplicateTrigger(triggerUuid) {
+  if (!triggerUuid) return false;
+
+  cleanOldTriggers();
+
+  if (recentTriggers.has(triggerUuid)) {
+    return true;
+  }
+
+  recentTriggers.set(triggerUuid, Date.now());
+  return false;
+}
+
+function normalize(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+async function mondayGraphQL(query, variables = {}) {
+  const response = await axios.post(
+    'https://api.monday.com/v2',
+    {
+      query,
+      variables
+    },
+    {
+      headers: {
+        Authorization: MONDAY_API_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    }
+  );
+
+  return response.data;
 }
 
 async function getMondayItemDetails(pulseId) {
@@ -35,6 +90,9 @@ async function getMondayItemDetails(pulseId) {
   try {
     const query = `
       query ($itemIds: [ID!]) {
+        account {
+          slug
+        }
         items(ids: $itemIds) {
           id
           name
@@ -46,23 +104,12 @@ async function getMondayItemDetails(pulseId) {
       }
     `;
 
-    const response = await axios.post(
-      'https://api.monday.com/v2',
-      {
-        query,
-        variables: {
-          itemIds: [String(pulseId)]
-        }
-      },
-      {
-        headers: {
-          Authorization: MONDAY_API_TOKEN,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const response = await mondayGraphQL(query, {
+      itemIds: [String(pulseId)]
+    });
 
-    const item = response.data?.data?.items?.[0];
+    const item = response.data?.items?.[0];
+    const accountSlug = response.data?.account?.slug;
 
     if (!item) {
       console.warn(`[MONDAY API] No item found for pulseId ${pulseId}.`);
@@ -77,8 +124,8 @@ async function getMondayItemDetails(pulseId) {
     return {
       itemName: item.name || 'Unknown Item',
       boardName: item.board?.name || 'Unknown Board',
-      itemUrl: item.board?.id && item.id
-        ? `https://pigeonstudios.monday.com/boards/${item.board.id}/pulses/${item.id}`
+      itemUrl: accountSlug && item.board?.id && item.id
+        ? `https://${accountSlug}.monday.com/boards/${item.board.id}/pulses/${item.id}`
         : null
     };
   } catch (error) {
@@ -96,24 +143,31 @@ async function getMondayItemDetails(pulseId) {
 }
 
 app.get('/', (req, res) => {
-  res.status(200).send('Monday → Discord relay is running.');
+  res.status(200).send('CaliWorld Monday → Discord relay is running.');
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'monday-discord-relay',
+    targetGroup: TARGET_GROUP_NAME
+  });
 });
 
 app.get('/monday', (req, res) => {
   res.status(200).send('Monday webhook endpoint is ready.');
 });
 
-// Discord webhook test route
 app.get('/test-discord', async (req, res) => {
-  try {
-    console.log('[TEST] Sending Discord webhook test message...');
+  if (!TEST_ROUTE_ENABLED) {
+    return res.status(403).send('Test route is disabled.');
+  }
 
+  try {
     await axios.post(DISCORD_WEBHOOK_URL, {
       username: DISCORD_USERNAME,
-      content: 'Monday → Discord relay test message.'
+      content: '✅ CaliWorld Monday → Discord relay test message.'
     });
-
-    console.log('[TEST] Discord webhook test successful.');
 
     return res.status(200).send('Discord test sent successfully.');
   } catch (error) {
@@ -129,9 +183,6 @@ app.get('/test-discord', async (req, res) => {
 app.post('/monday', async (req, res) => {
   const body = req.body;
 
-  console.log('[RAW BODY]', JSON.stringify(body, null, 2));
-
-  // Monday.com webhook verification
   if (body.challenge) {
     console.log('[MONDAY] Challenge verification received.');
 
@@ -144,6 +195,11 @@ app.post('/monday', async (req, res) => {
     const event = body.event || {};
 
     console.log('[MONDAY EVENT]', JSON.stringify(event, null, 2));
+
+    if (isDuplicateTrigger(event.triggerUuid)) {
+      console.log(`[DUPLICATE] Ignored duplicate trigger ${event.triggerUuid}.`);
+      return res.sendStatus(200);
+    }
 
     const pulseId =
       event.pulseId ||
@@ -160,6 +216,14 @@ app.post('/monday', async (req, res) => {
       event.value?.name ||
       event.dest_group?.title ||
       'Unknown Group';
+
+    if (normalize(groupName) !== normalize(TARGET_GROUP_NAME)) {
+      console.log(
+        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME}".`
+      );
+
+      return res.sendStatus(200);
+    }
 
     const mondayDetails = await getMondayItemDetails(pulseId);
 
@@ -182,20 +246,10 @@ app.post('/monday', async (req, res) => {
 
     console.log(`[INFO] Item "${itemName}" moved to "${groupName}".`);
 
-    if (groupName !== TARGET_GROUP_NAME) {
-      console.log(
-        `[SKIPPED] "${groupName}" does not match target group "${TARGET_GROUP_NAME}".`
-      );
-
-      return res.sendStatus(200);
-    }
-
-    console.log('[DISCORD] Sending deployment embed...');
-
     const embed = {
-      title: '✔ Deployment Ready',
-      description: `**${itemName}** was moved to **${groupName}**.`,
-      color: 7085311,
+      title: '✔ Ready for Deployment',
+      description: `**${itemName}** has been moved into **${groupName}**.`,
+      color: EMBED_COLOR,
       fields: [
         {
           name: 'Item',
@@ -214,7 +268,7 @@ app.post('/monday', async (req, res) => {
         }
       ],
       footer: {
-        text: 'Pigeon Studios • Monday Relay'
+        text: 'CaliWorld Development • Monday Relay'
       },
       timestamp: new Date().toISOString()
     };
@@ -228,9 +282,20 @@ app.post('/monday', async (req, res) => {
       });
     }
 
-    await axios.post(DISCORD_WEBHOOK_URL, {
+    const payload = {
       username: DISCORD_USERNAME,
       embeds: [embed]
+    };
+
+    if (DISCORD_ROLE_ID) {
+      payload.content = `<@&${DISCORD_ROLE_ID}>`;
+      payload.allowed_mentions = {
+        roles: [DISCORD_ROLE_ID]
+      };
+    }
+
+    await axios.post(DISCORD_WEBHOOK_URL, payload, {
+      timeout: 10000
     });
 
     console.log(`[SENT] Discord webhook sent for "${itemName}".`);
@@ -247,5 +312,5 @@ app.post('/monday', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Monday → Discord relay running on port ${PORT}`);
+  console.log(`CaliWorld Monday → Discord relay running on port ${PORT}`);
 });
